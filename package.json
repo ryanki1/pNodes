@@ -1,0 +1,23 @@
+{
+  "name": "pnodes",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "proxy": "node proxy-server.js",
+    "frontend": "cd xandeum-pnode-analytics && npm start",
+    "dev": "concurrently \"npm run proxy\" \"npm run frontend\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "xandeum-prpc": "^0.1.6"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

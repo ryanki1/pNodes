@@ -1,0 +1,185 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="page-header">
+    <h1>🔷 Xandeum pNode Analytics</h1>
+    <p>Real-time monitoring of the Xandeum pNode network</p>
+  </div>
+
+  <!-- Loading Spinner -->
+  @if (loading()) {
+    <div class="loading-container">
+      <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+      <p>Loading pNode data...</p>
+    </div>
+  }
+
+  <!-- Error Message -->
+  @if (error()) {
+    <nz-card class="error-card">
+      <p>{{ error() }}</p>
+      <button nz-button nzType="primary" (click)="refresh()">Retry</button>
+    </nz-card>
+  }
+
+  <!-- Dashboard Content -->
+  @if (!loading() && !error()) {
+    <div class="card-grid">
+
+      <!-- Card 1: Network Overview -->
+      <nz-card [nzTitle]="networkTitle" [nzExtra]="networkExtra" class="dashboard-card">
+        <ng-template #networkTitle>
+          <div class="card-title">
+            <span class="icon">🌐</span>
+            <div>
+              <div class="title">Network Overview</div>
+              <div class="subtitle">Real-time statistics</div>
+            </div>
+          </div>
+        </ng-template>
+
+        <ng-template #networkExtra>
+          <button nz-button nzType="text" nzShape="circle" (click)="refresh()" title="Refresh">
+            <span nz-icon nzType="reload" nzTheme="outline"></span>
+          </button>
+        </ng-template>
+
+        <div nz-row [nzGutter]="16" class="stats-row">
+          <div nz-col [nzSpan]="8">
+            <nz-statistic
+              [nzValue]="totalCount()"
+              nzTitle="Total Pods"
+              [nzValueStyle]="{ color: '#1890ff' }">
+            </nz-statistic>
+          </div>
+          <div nz-col [nzSpan]="8">
+            <nz-statistic
+              [nzValue]="getOnlineCount()"
+              nzTitle="Online"
+              [nzValueStyle]="{ color: '#52c41a' }">
+            </nz-statistic>
+          </div>
+          <div nz-col [nzSpan]="8">
+            <nz-statistic
+              [nzValue]="formatBytes(getTotalStorage())"
+              nzTitle="Total Storage"
+              [nzValueStyle]="{ color: '#fa8c16' }">
+            </nz-statistic>
+          </div>
+        </div>
+      </nz-card>
+
+      <!-- Card 2: Node Statistics -->
+      @if (nodeStats()) {
+        <nz-card [nzTitle]="statsTitle" class="dashboard-card">
+          <ng-template #statsTitle>
+            <div class="card-title">
+              <span class="icon">📊</span>
+              <div>
+                <div class="title">Node Statistics</div>
+                <div class="subtitle">Connected Node: 173.212.220.65</div>
+              </div>
+            </div>
+          </ng-template>
+
+          <div class="stat-row">
+            <span class="stat-label">CPU Usage</span>
+            <span class="stat-value">{{ nodeStats()!.cpu_percent | number:'1.1-1' }}%</span>
+          </div>
+
+          <div class="stat-row">
+            <span class="stat-label">RAM Used</span>
+            <span class="stat-value">{{ formatBytes(nodeStats()!.ram_used) }} / {{ formatBytes(nodeStats()!.ram_total) }}</span>
+          </div>
+
+          <div class="stat-row">
+            <span class="stat-label">Uptime</span>
+            <span class="stat-value">{{ formatUptime(nodeStats()!.uptime) }}</span>
+          </div>
+
+          <div class="stat-row">
+            <span class="stat-label">Active Streams</span>
+            <span class="stat-value">{{ nodeStats()!.active_streams }}</span>
+          </div>
+
+          <div class="stat-row">
+            <span class="stat-label">Packets Sent</span>
+            <span class="stat-value">{{ nodeStats()!.packets_sent | number }}</span>
+          </div>
+
+          <div class="stat-row">
+            <span class="stat-label">Packets Received</span>
+            <span class="stat-value">{{ nodeStats()!.packets_received | number }}</span>
+          </div>
+
+          <!-- CPU Progress Bar -->
+          <div style="margin-top: 16px;">
+            <div style="margin-bottom: 4px; font-size: 12px; color: #8c8c8c;">CPU Load</div>
+            <nz-progress
+              [nzPercent]="nodeStats()!.cpu_percent"
+              [nzShowInfo]="true"
+              [nzStatus]="nodeStats()!.cpu_percent > 80 ? 'exception' : 'active'">
+            </nz-progress>
+          </div>
+        </nz-card>
+      }
+
+      <!-- Card 3: Pod List -->
+      <nz-card [nzTitle]="podListTitle" [nzExtra]="podListExtra" class="dashboard-card pod-list-card">
+        <ng-template #podListTitle>
+          <div class="card-title">
+            <span class="icon">📦</span>
+            <div>
+              <div class="title">Active Pods</div>
+              <div class="subtitle">{{ totalCount() }} pods in network</div>
+            </div>
+          </div>
+        </ng-template>
+
+        <ng-template #podListExtra>
+          <nz-tag [nzColor]="'blue'">{{ totalCount() }} Total</nz-tag>
+        </ng-template>
+
+        <nz-table
+          #podTable
+          [nzData]="pods()"
+          [nzPageSize]="10"
+          [nzScroll]="{ x: '600px' }"
+          nzSize="small">
+          <thead>
+            <tr>
+              <th nzWidth="180px">Public Key</th>
+              <th nzWidth="150px">Address</th>
+              <th nzWidth="100px">Storage</th>
+              <th nzWidth="100px">Uptime</th>
+              <th nzWidth="80px">Version</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (pod of podTable.data; track pod.pubkey) {
+              <tr>
+                <td>
+                  <code class="pubkey">{{ shortenPubkey(pod.pubkey || '') }}</code>
+                </td>
+                <td>
+                  <small>{{ pod.address || 'N/A' }}</small>
+                </td>
+                <td>
+                  <strong>{{ formatBytes(pod.storage_used || 0) }}</strong>
+                </td>
+                <td>
+                  {{ formatUptime(pod.uptime || 0) }}
+                </td>
+                <td>
+                  <nz-tag [nzColor]="'green'">{{ pod.version || 'N/A' }}</nz-tag>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </nz-table>
+      </nz-card>
+
+    </div>
+  }
+</div>
+
+<router-outlet />
