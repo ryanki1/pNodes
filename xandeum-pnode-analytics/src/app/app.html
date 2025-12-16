@@ -87,7 +87,7 @@
           </div>
 
           <div class="stat-row">
-            <span class="stat-label">RAM Used</span>
+            <span class="stat-label">RAM Used / Total</span>
             <span class="stat-value">{{ formatBytes(nodeStats()!.ram_used) }} / {{ formatBytes(nodeStats()!.ram_total) }}</span>
           </div>
 
@@ -113,10 +113,10 @@
 
           <!-- CPU Progress Bar -->
           <div style="margin-top: 16px;">
-            <div style="margin-bottom: 4px; font-size: 12px; color: #8c8c8c;">CPU Load</div>
+            <div style="margin-bottom: 4px; font-size: 12px; color: #8c8c8c;">CPU Load ({{ nodeStats()!.cpu_percent | number:'1.2-2'}})</div>
             <nz-progress
               [nzPercent]="nodeStats()!.cpu_percent"
-              [nzShowInfo]="true"
+              [nzShowInfo]="false"
               [nzStatus]="nodeStats()!.cpu_percent > 80 ? 'exception' : 'active'">
             </nz-progress>
           </div>

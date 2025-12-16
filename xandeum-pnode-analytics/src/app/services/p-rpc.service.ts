@@ -84,7 +84,7 @@ export class PRpcService {
    */
   async getAllData(): Promise<{ pods: PodsResponse; nodeStats: NodeStats }> {
     try {
-      const [pods, nodeStats] = await Promise.all([initi<lis 
+      const [pods, nodeStats] = await Promise.all([
         this.getPods(),
         this.getStats()
       ]);

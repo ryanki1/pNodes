@@ -84,6 +84,11 @@
 
 .stats-row {
   padding: 16px 0;
+  nz-statistic {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 }
 
 .stat-row {
@@ -113,6 +118,10 @@
   ::ng-deep {
     .ant-table {
       font-size: 13px;
+      td {
+        max-width: 80px;
+        overflow-x: scroll;
+      }
     }
 
     .ant-table-thead > tr > th {
@@ -171,6 +180,14 @@
     color: #a6a6a6;
   }
 
+  .card-grid {
+    ::ng-deep nz-statistic {
+      .ant-statistic-title {
+        color: rgb(255, 255, 255, 0.85);
+      }
+    }
+  }
+
   .dashboard-card {
     ::ng-deep {
       background: #1f1f1f;
@@ -203,8 +220,37 @@
     }
   }
 
-  .pubkey {
-    background: #262626;
-    color: #40a9ff;
+  nz-table {
+    .pubkey {
+      background: #262626;
+      color: #40a9ff;
+    }
+    ::ng-deep nz-pagination {
+      li:not(.ant-pagination-item-active) {
+        border-color: rgb(255, 255, 255, 0.85)!important;
+        a {
+          color: rgb(255, 255, 255, 0.85);
+          &:hover nz-icon {
+            color: rgb(255, 255, 255, 1);
+          }
+          .ant-pagination-item-ellipsis {
+            color: rgb(255, 255, 255, 0.85);
+          }
+        }
+        button {
+          nz-icon {
+            color: rgb(255, 255, 255, 0.85);
+            &:hover {
+              color: rgb(255, 255, 255, 1);
+            }
+          }
+          &[disabled] {
+            nz-icon {
+              filter: brightness(.5);    
+            }
+          }
+        }
+      }
+    }
   }
 }
