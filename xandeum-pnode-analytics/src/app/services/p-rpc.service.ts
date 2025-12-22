@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { ECHARTS_OPTIONS, MAX_BARS, ONE_GB, POLL_INTERVAL } from './constants';
+import { get24Clock } from './utils';
 
 // TypeScript Interfaces based on real API responses
 export interface Pod {
@@ -37,11 +39,15 @@ export interface NodeStats {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PRpcService {
   // Use local proxy server instead of direct pNode connection
   private readonly baseUrl = 'http://localhost:3001/api';
+  private repo: { timenow?: number; pods: Pod[]; stats: NodeStats[] } = {
+    pods: [],
+    stats: [],
+  };
 
   constructor(private http: HttpClient) {}
 
@@ -51,9 +57,7 @@ export class PRpcService {
   async getPods(): Promise<PodsResponse> {
     try {
       console.log('🌐 Fetching pods from:', `${this.baseUrl}/pods`);
-      const response = await firstValueFrom(
-        this.http.get<PodsResponse>(`${this.baseUrl}/pods`)
-      );
+      const response = await firstValueFrom(this.http.get<PodsResponse>(`${this.baseUrl}/pods`));
       console.log('✅ Pods response:', response);
       return response;
     } catch (error) {
@@ -68,9 +72,7 @@ export class PRpcService {
   async getStats(): Promise<NodeStats> {
     try {
       console.log('🌐 Fetching stats from:', `${this.baseUrl}/stats`);
-      const response = await firstValueFrom(
-        this.http.get<NodeStats>(`${this.baseUrl}/stats`)
-      );
+      const response = await firstValueFrom(this.http.get<NodeStats>(`${this.baseUrl}/stats`));
       console.log('✅ Stats response:', response);
       return response;
     } catch (error) {
@@ -84,12 +86,12 @@ export class PRpcService {
    */
   async getAllData(): Promise<{ pods: PodsResponse; nodeStats: NodeStats }> {
     try {
-      const [pods, nodeStats] = await Promise.all([
-        this.getPods(),
-        this.getStats()
-      ]);
-
-      return { pods, nodeStats };
+      const [podsResponse, nodeStats] = await Promise.all([this.getPods(), this.getStats()]);
+      const timenow = this.repo.timenow ? this.repo.timenow : Date.now();
+      const pods = podsResponse.pods;
+      const stats = [...this.repo.stats, ...[nodeStats]];
+      this.repo = { ...this.repo, timenow, pods, stats };
+      return { pods: podsResponse, nodeStats };
     } catch (error) {
       console.error('❌ Error fetching all data:', error);
       throw error;
@@ -97,7 +99,7 @@ export class PRpcService {
   }
 
   /**
-   * Find a specific pNode by public key
+   * Find a specific pNode by public key [TODO KR - still required?]
    */
   async findPNode(pubkey: string): Promise<Pod | undefined> {
     try {
@@ -110,45 +112,6 @@ export class PRpcService {
   }
 
   /**
-   * Format bytes to human-readable string
-   */
-  formatBytes(bytes: number, decimals: number = 2): string {
-    if (bytes === 0) return '0 Bytes';
-
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-  }
-
-  /**
-   * Format uptime (seconds) to human-readable string
-   */
-  formatUptime(seconds: number): string {
-    const days = Math.floor(seconds / 86400);
-    const hours = Math.floor((seconds % 86400) / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-
-    if (days > 0) {
-      return `${days}d ${hours}h`;
-    } else if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    } else {
-      return `${minutes}m`;
-    }
-  }
-
-  /**
-   * Format timestamp to date string
-   */
-  formatTimestamp(timestamp: number): string {
-    return new Date(timestamp * 1000).toLocaleString();
-  }
-
-  /**
    * Shorten pubkey for display (e.g., "EcTqXg...bKcL")
    */
   shortenPubkey(pubkey: string, startChars: number = 6, endChars: number = 4): string {
@@ -156,5 +119,27 @@ export class PRpcService {
       return pubkey;
     }
     return `${pubkey.slice(0, startChars)}...${pubkey.slice(-endChars)}`;
+  }
+
+  getBarChart() {
+    let xAxisData: string[] = [];
+    let yAxisData: number[] = [];
+    this.repo.stats.forEach((stat, index) => {
+      xAxisData.push(get24Clock(this.repo.timenow! + index * POLL_INTERVAL));
+      yAxisData.push(stat.total_bytes / ONE_GB);
+    });
+    if (this.repo.stats.length > MAX_BARS) {
+      this.repo.stats = [...this.repo.stats.slice(-MAX_BARS-1, this.repo.stats.length)];
+      this.repo.stats.shift();
+      this.repo.timenow = this.repo.timenow! +  POLL_INTERVAL;
+      xAxisData.shift();
+      yAxisData.shift();
+    }
+    let options = {
+      ...ECHARTS_OPTIONS,
+      xAxis: { ...ECHARTS_OPTIONS.xAxis, data: xAxisData },
+      series: [{ type: 'bar', data: yAxisData }]
+    };
+    return options;
   }
 }
