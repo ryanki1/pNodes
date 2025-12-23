@@ -11,10 +11,26 @@ import { provideNzIcons } from 'ng-zorro-antd/icon';
 import { ReloadOutline } from '@ant-design/icons-angular/icons'
 import { provideEchartsCore} from 'ngx-echarts';
 import * as echarts from 'echarts/core';
-import { BarChart, LineChart, BarSeriesOption, LineSeriesOption }  from 'echarts/charts';
-import { GridComponent } from 'echarts/components';
+import { BarChart, LineChart }  from 'echarts/charts';
+import {
+  GridComponent,
+  TooltipComponent,
+  LegendComponent,
+  DatasetComponent,
+  TitleComponent
+} from 'echarts/components';
 import { SVGRenderer } from 'echarts/renderers';
-echarts.use([BarChart, GridComponent, SVGRenderer]);
+
+echarts.use([
+  BarChart,
+  LineChart,
+  GridComponent,
+  LegendComponent,
+  TooltipComponent,
+  TitleComponent,
+  DatasetComponent,
+  SVGRenderer
+]);
 
 registerLocaleData(en);
 

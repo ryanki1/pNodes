@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Pod, NodeStats } from './p-rpc.service';
 import { get24Clock } from './utils';
-import { ECHARTS_OPTIONS, MAX_BARS, ONE_GB, POLL_INTERVAL } from './constants';
+import { ECHARTS_OPTIONS, MAX_BARS, ONE_GB, ONE_MB, POLL_INTERVAL } from './constants';
 
 @Injectable({
   providedIn: 'root',
@@ -128,23 +128,38 @@ export class MockDataService {
   }
 
   getBarChart() {
-    let xAxisData: string[] = [];
-    let yAxisData: number[] = [];
+    const xAxisData: string[] = [];
+    const yAxisTotalBytes: number[] = [];
+    const yAxisPacketsSent: number[] = [];
     this.repo.stats.forEach((stat, index) => {
       xAxisData.push(get24Clock((this.repo.timenow || 0) + index * POLL_INTERVAL));
-      yAxisData.push(stat.total_bytes / ONE_GB);
+      yAxisTotalBytes.push(stat.total_bytes / ONE_GB); // Changed to MB instead of GB
+      yAxisPacketsSent.push(stat.packets_sent / ONE_MB)
     });
     if (this.repo.stats.length > MAX_BARS) {
       this.repo.stats = [...this.repo.stats.slice(-MAX_BARS-1, this.repo.stats.length)];
       this.repo.stats.shift();
       this.repo.timenow = this.repo.timenow! +  POLL_INTERVAL;
       xAxisData.shift();
-      yAxisData.shift();
+      yAxisTotalBytes.shift();
+      yAxisPacketsSent.shift();
     }
     let options = {
       ...ECHARTS_OPTIONS,
-      xAxis: { ...ECHARTS_OPTIONS.xAxis, data: xAxisData },
-      series: [{ type: 'bar', data: yAxisData }]
+      xAxis: {
+        ...ECHARTS_OPTIONS.xAxis,
+        data: xAxisData
+      },
+      series: [
+        {
+          ...ECHARTS_OPTIONS.series[0],
+          data: yAxisTotalBytes,
+        },
+        {
+          ...ECHARTS_OPTIONS.series[1],
+          data: yAxisPacketsSent,
+        }
+      ]
     };
     return options;
   }

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { ECHARTS_OPTIONS, MAX_BARS, ONE_GB, POLL_INTERVAL } from './constants';
+import { ECHARTS_OPTIONS, MAX_BARS, ONE_GB, ONE_MB, POLL_INTERVAL } from './constants';
 import { get24Clock } from './utils';
 
 // TypeScript Interfaces based on real API responses
@@ -122,24 +122,40 @@ export class PRpcService {
   }
 
   getBarChart() {
-    let xAxisData: string[] = [];
-    let yAxisData: number[] = [];
+    // Trim to MAX_BARS if needed (sliding window)
+    if (this.repo.stats.length > MAX_BARS) {
+      this.repo.stats = this.repo.stats.slice(-MAX_BARS);
+      this.repo.timenow = this.repo.timenow! + POLL_INTERVAL;
+    }
+
+    // Prepare chart data
+    const xAxisData: string[] = [];
+    const yAxisTotalBytes: number[] = [];
+    const yAxisPacketsSent: number[] = [];
+
     this.repo.stats.forEach((stat, index) => {
       xAxisData.push(get24Clock(this.repo.timenow! + index * POLL_INTERVAL));
-      yAxisData.push(stat.total_bytes / ONE_GB);
+      yAxisTotalBytes.push(stat.total_bytes / ONE_GB);
+      yAxisPacketsSent.push(stat.packets_sent / ONE_MB);
     });
-    if (this.repo.stats.length > MAX_BARS) {
-      this.repo.stats = [...this.repo.stats.slice(-MAX_BARS-1, this.repo.stats.length)];
-      this.repo.stats.shift();
-      this.repo.timenow = this.repo.timenow! +  POLL_INTERVAL;
-      xAxisData.shift();
-      yAxisData.shift();
-    }
-    let options = {
+
+    // Merge with base options and inject data
+    return {
       ...ECHARTS_OPTIONS,
-      xAxis: { ...ECHARTS_OPTIONS.xAxis, data: xAxisData },
-      series: [{ type: 'bar', data: yAxisData }]
+      xAxis: {
+        ...ECHARTS_OPTIONS.xAxis,
+        data: xAxisData
+      },
+      series: [
+        {
+          ...ECHARTS_OPTIONS.series[0],
+          data: yAxisTotalBytes
+        },
+        {
+          ...ECHARTS_OPTIONS.series[1],
+          data: yAxisPacketsSent
+        }
+      ]
     };
-    return options;
   }
 }

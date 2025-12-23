@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -12,7 +12,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzProgressModule } from 'ng-zorro-antd/progress';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { LegendPosition, NgxChartsModule } from '@swimlane/ngx-charts';
 
 import { PRpcService, Pod, NodeStats } from '../services/p-rpc.service';
 import { MockDataService } from '../services/mock-data.service';
@@ -20,6 +20,7 @@ import * as echarts from 'echarts/core';
 import { timer } from 'rxjs';
 import { POLL_INTERVAL } from '../services/constants';
 import { formatBytes, formatUptime } from '../services/utils';
+import { EChartsOption } from 'echarts/types/dist/shared';
 
 @Component({
   selector: 'app-dashboard',
@@ -41,26 +42,12 @@ import { formatBytes, formatUptime } from '../services/utils';
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   // State signals
   loading = signal(true);
   error = signal<string | null>(null);
   isMockMode = signal(false);
-  barChartOptions = signal({
-    xAxis: {
-      type: 'category',
-      data: [],
-    },
-    yAxis: {
-      type: 'value',
-    },
-    series: [
-      {
-        type: 'bar',
-        data: [],
-      },
-    ],
-  });
+  barChartOptions = signal<EChartsOption>({} as EChartsOption);
 
   private destroyRef = inject(DestroyRef);
   private barChart?: echarts.ECharts;
@@ -69,12 +56,16 @@ export class DashboardComponent implements OnInit {
   pods = signal<Pod[]>([]);
   totalCount = signal(0);
   nodeStats = signal<NodeStats | null>(null);
+  legendPosition = LegendPosition;
 
   // Cached chart data (computed signals for performance)
   storageDistribution = computed(() => this.getStorageDistribution());
   versionDistribution = computed(() => this.getVersionDistribution());
   lastSeenDistribution = computed(() => this.getLastSeenDistribution());
   uptimeHealthDistribution = computed(() => this.getUptimeHealthDistribution());
+  private ro = new ResizeObserver(() => {
+    this.barChart?.resize();
+  });
 
   constructor(
     private prpcService: PRpcService,
@@ -95,6 +86,7 @@ export class DashboardComponent implements OnInit {
         if (!this.barChart) {
           const dom = document.getElementById('barChart');
           if (dom) {
+            this.ro.observe(dom);
             this.barChart = echarts.init(dom, null, {
               renderer: 'svg',
               useDirtyRect: false,
@@ -112,6 +104,10 @@ export class DashboardComponent implements OnInit {
         }
       });
     }
+
+  ngOnDestroy() {
+    this.ro.disconnect();
+  }
 
   async loadData() {
     try {

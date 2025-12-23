@@ -146,9 +146,8 @@
                   <div style="height: 300px;">
                     <ngx-charts-pie-chart
                       [results]="storageDistribution()"
-                      [legend]="true"
                       [labels]="true"
-                      [doughnut]="false">
+                      [doughnut]="true">
                     </ngx-charts-pie-chart>
                   </div>
                 </nz-card>
@@ -160,7 +159,6 @@
                   <div style="height: 300px;">
                     <ngx-charts-pie-chart
                       [results]="versionDistribution()"
-                      [legend]="true"
                       [labels]="true"
                       [doughnut]="false">
                     </ngx-charts-pie-chart>
@@ -192,7 +190,6 @@
                   <div style="height: 300px;">
                     <ngx-charts-pie-chart
                       [results]="uptimeHealthDistribution()"
-                      [legend]="true"
                       [labels]="true"
                       [doughnut]="false">
                     </ngx-charts-pie-chart>
