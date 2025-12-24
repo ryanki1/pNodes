@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
@@ -8,7 +8,7 @@ import en from '@angular/common/locales/en';
 
 import { routes } from './app.routes';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
-import { ReloadOutline } from '@ant-design/icons-angular/icons'
+import { BarChartOutline, PieChartOutline, ReloadOutline } from '@ant-design/icons-angular/icons'
 import { provideEchartsCore} from 'ngx-echarts';
 import * as echarts from 'echarts/core';
 import { BarChart, LineChart }  from 'echarts/charts';
@@ -34,10 +34,11 @@ echarts.use([
 
 registerLocaleData(en);
 
-const icons = [ReloadOutline];
+const icons = [ BarChartOutline, PieChartOutline, ReloadOutline ];
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZonelessChangeDetection(),
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideHttpClient(),

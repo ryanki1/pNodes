@@ -59,14 +59,18 @@ export class MockDataService {
         uptime = 604800 + Math.random() * 2592000; // 7d to 37d
       }
 
-      // Generate storage (0 to 10GB, some pods with 0)
+      // Generate storage (0 to 50GB committed, some pods with 0)
       let storageUsed: number;
+      let storageCommitted: number;
       if (Math.random() < 0.1) {
         // 10% no storage
         storageUsed = 0;
+        storageCommitted = Math.floor((1 + Math.random() * 49) * 1024 * 1024 * 1024); // 1-50GB
       } else {
-        // Varied storage from 100MB to 10GB
-        storageUsed = Math.floor(100 * 1024 * 1024 + Math.random() * 10 * 1024 * 1024 * 1024);
+        // Committed storage between 1GB to 50GB
+        storageCommitted = Math.floor((1 + Math.random() * 49) * 1024 * 1024 * 1024);
+        // Used storage from 10% to 95% of committed
+        storageUsed = Math.floor(storageCommitted * (0.1 + Math.random() * 0.85));
       }
 
       pods.push({
@@ -75,6 +79,8 @@ export class MockDataService {
         last_seen_timestamp: now - lastSeenOffset,
         version: versions[Math.floor(Math.random() * versions.length)],
         storage_used: storageUsed,
+        storage_committed: storageCommitted,
+        storage_usage_percent: storageUsed / storageCommitted, // Decimal 0.0 - 1.0
         uptime: Math.floor(uptime),
       });
     }

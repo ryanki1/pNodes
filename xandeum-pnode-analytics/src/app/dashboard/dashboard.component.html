@@ -17,7 +17,7 @@
   @if (error()) {
     <nz-card class="error-card">
       <p>{{ error() }}</p>
-      <button nz-button nzType="primary" (click)="refresh()">Retry</button>
+      <button class="refresh" nz-button nzType="primary" (click)="refresh()">Retry</button>
     </nz-card>
   }
 
@@ -38,7 +38,7 @@
         </ng-template>
 
         <ng-template #networkExtra>
-          <button nz-button nzType="text" nzShape="circle" (click)="refresh()" title="Refresh">
+          <button class="refresh" nz-button nzType="text" nzShape="circle" (click)="refresh()" title="Refresh">
             <span nz-icon nzType="reload" nzTheme="outline"></span>
           </button>
         </ng-template>
@@ -143,12 +143,21 @@
               <!-- Chart 1: Storage Distribution (Pie) -->
               <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12">
                 <nz-card nzTitle="Storage Distribution" class="chart-card">
-                  <div style="height: 300px;">
-                    <ngx-charts-pie-chart
-                      [results]="storageDistribution()"
-                      [labels]="true"
-                      [doughnut]="true">
-                    </ngx-charts-pie-chart>
+                  <div style="height: 300px; position: relative;">
+                    @if (hasData(storageDistribution())) {
+                      <ngx-charts-pie-chart
+                        [results]="storageDistribution()"
+                        [labels]="true"
+                        [doughnut]="true">
+                      </ngx-charts-pie-chart>
+                    } @else {
+                      <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #999;">
+                        <div style="text-align: center;">
+                          <span nz-icon nzType="pie-chart" nzTheme="outline" class="icon"></span> 
+                          <div>No data available</div>
+                        </div>
+                      </div>
+                    }
                   </div>
                 </nz-card>
               </div>
@@ -156,12 +165,21 @@
               <!-- Chart 2: Version Distribution (Pie) -->
               <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12">
                 <nz-card nzTitle="Version Distribution" class="chart-card">
-                  <div style="height: 300px;">
-                    <ngx-charts-pie-chart
-                      [results]="versionDistribution()"
-                      [labels]="true"
-                      [doughnut]="false">
-                    </ngx-charts-pie-chart>
+                  <div style="height: 300px; position: relative;">
+                    @if (hasData(versionDistribution())) {
+                      <ngx-charts-pie-chart
+                        [results]="versionDistribution()"
+                        [labels]="true"
+                        [doughnut]="false">
+                      </ngx-charts-pie-chart>
+                    } @else {
+                      <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #999;">
+                        <div style="text-align: center;">
+                          <span nz-icon nzType="pie-chart" nzTheme="outline" class="icon"></span> 
+                          <div>No data available</div>
+                        </div>
+                      </div>
+                    }
                   </div>
                 </nz-card>
               </div>
@@ -169,17 +187,26 @@
               <!-- Chart 3: Last Seen Distribution (Bar) -->
               <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12">
                 <nz-card nzTitle="Last Seen Distribution" class="chart-card">
-                  <div style="height: 300px;">
-                    <ngx-charts-bar-vertical
-                      [results]="lastSeenDistribution()"
-                      [xAxis]="true"
-                      [yAxis]="true"
-                      [legend]="false"
-                      [showXAxisLabel]="true"
-                      [showYAxisLabel]="true"
-                      xAxisLabel="Time Range"
-                      yAxisLabel="Number of Pods">
-                    </ngx-charts-bar-vertical>
+                  <div style="height: 300px; position: relative;">
+                    @if (hasData(lastSeenDistribution())) {
+                      <ngx-charts-bar-vertical
+                        [results]="lastSeenDistribution()"
+                        [xAxis]="true"
+                        [yAxis]="true"
+                        [legend]="false"
+                        [showXAxisLabel]="true"
+                        [showYAxisLabel]="true"
+                        xAxisLabel="Time Range"
+                        yAxisLabel="Number of Pods">
+                      </ngx-charts-bar-vertical>
+                    } @else {
+                      <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #999;">
+                        <div style="text-align: center;">
+                          <span nz-icon nzType="bar-chart" nzTheme="outline" class="icon"></span> 
+                          <div>No data available</div>
+                        </div>
+                      </div>
+                    }
                   </div>
                 </nz-card>
               </div>
@@ -187,12 +214,21 @@
               <!-- Chart 4: Uptime Health Distribution (Pie) -->
               <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12">
                 <nz-card nzTitle="Uptime Health Distribution" class="chart-card">
-                  <div style="height: 300px;">
-                    <ngx-charts-pie-chart
-                      [results]="uptimeHealthDistribution()"
-                      [labels]="true"
-                      [doughnut]="false">
-                    </ngx-charts-pie-chart>
+                  <div style="height: 300px; position: relative;">
+                    @if (hasData(uptimeHealthDistribution())) {
+                      <ngx-charts-pie-chart
+                        [results]="uptimeHealthDistribution()"
+                        [labels]="true"
+                        [doughnut]="false">
+                      </ngx-charts-pie-chart>
+                    } @else {
+                      <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #999;">
+                        <div style="text-align: center;">
+                          <span nz-icon nzType="pie-chart" nzTheme="outline" class="icon"></span> 
+                          <div>No data available</div>
+                        </div>
+                      </div>
+                    }
                   </div>
                 </nz-card>
               </div>
@@ -218,22 +254,61 @@
             </ng-template>
 
             <ng-template #podListExtra>
-              <nz-tag [nzColor]="'blue'">{{ totalCount() }} Total</nz-tag>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <nz-tag [nzColor]="'blue'">{{ totalCount() }} Total</nz-tag>
+                <button class="refresh" nz-button nzType="text" nzShape="circle" (click)="refresh()" title="Refresh">
+                  <span nz-icon nzType="reload" nzTheme="outline"></span>
+                </button>
+              </div>
             </ng-template>
 
             <nz-table
               #podTable
-              [nzData]="pods()"
+              [nzData]="tableData()"
               [nzPageSize]="10"
               [nzScroll]="{ x: '600px' }"
               nzSize="small">
               <thead>
                 <tr>
-                  <th nzWidth="180px">Public Key</th>
-                  <th nzWidth="150px">Address</th>
-                  <th nzWidth="100px">Storage</th>
-                  <th nzWidth="100px">Uptime</th>
-                  <th nzWidth="80px">Version</th>
+                  <th nzWidth="180px"
+                      nzShowSort
+                      [nzSortFn]="sortByPubkey">
+                    Public Key
+                  </th>
+                  <th nzWidth="150px"
+                      nzShowSort
+                      [nzSortFn]="sortByAddress">
+                    Address
+                  </th>
+                  <th nzWidth="100px"
+                      nzShowSort
+                      [nzSortFn]="sortByStorage"
+                      [nzFilterMultiple]="false"
+                      [nzFilters]="storageFilters"
+                      [nzFilterFn]="filterByStorage">
+                    Storage
+                  </th>
+                  <th nzWidth="100px"
+                      nzShowSort
+                      [nzSortFn]="sortByStoragePercent"
+                      [nzFilterMultiple]="false"
+                      [nzFilters]="storagePercentFilters"
+                      [nzFilterFn]="filterByStoragePercent">
+                    % Used
+                  </th>
+                  <th nzWidth="100px"
+                      nzShowSort
+                      [nzSortFn]="sortByUptime"
+                      [nzFilterMultiple]="false"
+                      [nzFilters]="uptimeFilters"
+                      [nzFilterFn]="filterByUptime">
+                    Uptime
+                  </th>
+                  <th nzWidth="80px"
+                      nzShowSort
+                      [nzSortFn]="sortByVersion">
+                    Version
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -247,6 +322,9 @@
                     </td>
                     <td>
                       <strong>{{ formatBytes(pod.storage_used || 0) }}</strong>
+                    </td>
+                    <td>
+                      <strong>{{ ((pod.storage_usage_percent || 0) * 100).toFixed(1) }}%</strong>
                     </td>
                     <td>
                       {{ formatUptime(pod.uptime || 0) }}

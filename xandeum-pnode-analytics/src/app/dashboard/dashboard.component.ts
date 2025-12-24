@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, NgZone, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -51,12 +51,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   private destroyRef = inject(DestroyRef);
   private barChart?: echarts.ECharts;
+  private isLoadingData = false;
 
   // Data signals
   pods = signal<Pod[]>([]);
   totalCount = signal(0);
   nodeStats = signal<NodeStats | null>(null);
   legendPosition = LegendPosition;
+
+  // Static table data (only updated via refresh button)
+  tableData = signal<Pod[]>([]);
 
   // Cached chart data (computed signals for performance)
   storageDistribution = computed(() => this.getStorageDistribution());
@@ -70,38 +74,75 @@ export class DashboardComponent implements OnInit, OnDestroy {
   constructor(
     private prpcService: PRpcService,
     private mockDataService: MockDataService,
-    private router: Router
+    private router: Router,
+    private ngZone: NgZone
   ) {}
 
   async ngOnInit() {
     // Check if we're in mock mode
     this.isMockMode.set(this.router.url === '/mock');
 
+    // Initial load
+    await this.loadData();
+    // Initialize table with initial data
+    this.tableData.set([...this.pods()]);
+
     timer(0, POLL_INTERVAL)
       .pipe(
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe(async () => {
-        await this.loadData();
-        if (!this.barChart) {
-          const dom = document.getElementById('barChart');
-          if (dom) {
-            this.ro.observe(dom);
-            this.barChart = echarts.init(dom, null, {
-              renderer: 'svg',
-              useDirtyRect: false,
-            });
-          }
-        }
-        if (this.isMockMode()) {
-          this.barChartOptions.set(this.mockDataService.getBarChart() as any);
-        } else {
-          this.barChartOptions.set(this.prpcService.getBarChart() as any);
+      .subscribe(() => {
+        // Skip if already loading to prevent overlapping requests
+        if (this.isLoadingData) {
+          console.log('⏭️ Skipping data load - previous load still in progress');
+          return;
         }
 
-        if (this.barChartOptions()) {
-          this.barChart?.setOption(this.barChartOptions());
-        }
+        this.isLoadingData = true;
+
+        // Run async to prevent blocking the setInterval handler
+        setTimeout(() => {
+          this.loadData()
+            .then(() => {
+              // Initialize chart only once (outside zone for performance)
+              if (!this.barChart) {
+                this.ngZone.runOutsideAngular(() => {
+                  const dom = document.getElementById('barChart');
+                  if (dom) {
+                    this.ro.observe(dom);
+                    this.barChart = echarts.init(dom, null, {
+                      renderer: 'svg',
+                      useDirtyRect: false,
+                    });
+                  }
+                });
+              }
+
+              // Get chart options IN Angular zone (uses computed signals)
+              const newOptions = this.isMockMode()
+                ? this.mockDataService.getBarChart()
+                : this.prpcService.getBarChart();
+
+              // Update signal
+              this.barChartOptions.set(newOptions as any);
+
+              // Update chart rendering outside zone for better performance
+              if (this.barChart && newOptions) {
+                this.ngZone.runOutsideAngular(() => {
+                  this.barChart!.setOption(newOptions, {
+                    notMerge: false,
+                    lazyUpdate: true
+                  });
+                });
+              }
+            })
+            .catch((err) => {
+              console.error('❌ Error in timer subscription:', err);
+            })
+            .finally(() => {
+              this.isLoadingData = false;
+            });
+        }, 0);
       });
     }
 
@@ -118,8 +159,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         // Mock mode - use generated test data
         console.log('🧪 Loading mock data...');
 
-        // Simulate network delay
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        // Simulate minimal network delay
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         const mockPods = this.mockDataService.generateMockPods(25);
         const mockStats = this.mockDataService.generateMockNodeStats();
@@ -151,7 +192,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   async refresh() {
     await this.loadData();
+    // Update table data when user clicks refresh
+    this.tableData.set([...this.pods()]);
   }
+
 
   // Helper methods
   formatBytes(bytes: number): string {
@@ -180,6 +224,85 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const stats = this.nodeStats();
     return stats ? Math.round(stats.cpu_percent * 10) / 10 : 0;
   }
+
+  // ========================================
+  // Table Sort Functions
+  // ========================================
+
+  sortByPubkey = (a: Pod, b: Pod) => (a.pubkey || '').localeCompare(b.pubkey || '');
+  sortByAddress = (a: Pod, b: Pod) => (a.address || '').localeCompare(b.address || '');
+  sortByStorage = (a: Pod, b: Pod) => (a.storage_used || 0) - (b.storage_used || 0);
+  sortByStoragePercent = (a: Pod, b: Pod) => (a.storage_usage_percent || 0) - (b.storage_usage_percent || 0);
+  sortByUptime = (a: Pod, b: Pod) => (a.uptime || 0) - (b.uptime || 0);
+  sortByVersion = (a: Pod, b: Pod) => (a.version || '').localeCompare(b.version || '');
+
+  // ========================================
+  // Table Filter Configurations (Static)
+  // ========================================
+
+  storageFilters = [
+    { text: '> 5 GB', value: '>5gb' },
+    { text: '> 1 GB', value: '>1gb' },
+    { text: '< 1 GB', value: '<1gb' },
+    { text: 'No Storage', value: 'none' }
+  ];
+
+  storagePercentFilters = [
+    { text: '> 80%', value: '>0.8' },
+    { text: '> 50%', value: '>0.5' },
+    { text: '< 25%', value: '<0.25' },
+    { text: '0%', value: '0' }
+  ];
+
+  uptimeFilters = [
+    { text: '> 7 days', value: '>7d' },
+    { text: '> 1 day', value: '>1d' },
+    { text: '> 1 hour', value: '>1h' },
+    { text: '< 1 hour', value: '<1h' },
+    { text: 'No Uptime', value: 'none' }
+  ];
+
+  // ========================================
+  // Table Filter Functions (Simple)
+  // ========================================
+
+  filterByStorage = (value: string, item: Pod): boolean => {
+    const storage = item.storage_used || 0;
+    const oneGB = 1024 * 1024 * 1024;
+
+    switch (value) {
+      case '>5gb': return storage > 5 * oneGB;
+      case '>1gb': return storage > oneGB;
+      case '<1gb': return storage < oneGB && storage > 0;
+      case 'none': return storage === 0;
+      default: return true;
+    }
+  };
+
+  filterByStoragePercent = (value: string, item: Pod): boolean => {
+    const percent = item.storage_usage_percent || 0;
+
+    switch (value) {
+      case '>0.8': return percent > 0.8;
+      case '>0.5': return percent > 0.5;
+      case '<0.25': return percent < 0.25 && percent > 0;
+      case '0': return percent === 0;
+      default: return true;
+    }
+  };
+
+  filterByUptime = (value: string, item: Pod): boolean => {
+    const uptime = item.uptime || 0;
+
+    switch (value) {
+      case '>7d': return uptime > 7 * 24 * 3600;
+      case '>1d': return uptime > 24 * 3600;
+      case '>1h': return uptime > 3600 && uptime <= 24 * 3600;
+      case '<1h': return uptime < 3600 && uptime > 0;
+      case 'none': return uptime === 0;
+      default: return true;
+    }
+  };
 
   // ========================================
   // Chart Data Preparation Methods
@@ -318,5 +441,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
       name,
       value,
     }));
+  }
+
+  hasData(chartData: { name: string, value: number }[]): boolean {
+    return chartData.some(item => item.value > 0);
   }
 }

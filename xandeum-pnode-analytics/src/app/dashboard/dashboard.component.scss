@@ -197,6 +197,11 @@
   color: #1890ff;
 }
 
+.refresh {
+  color: #e6f7ff;
+  background-color: #096dd9;
+}
+
 /* Mobile Responsive - iPhone 8 (375px) */
 @media (max-width: 375px) {
   .dashboard-container {
@@ -348,6 +353,9 @@
 
     ::ng-deep .ant-card-body {
       padding: 20px;
+    }
+    .icon {
+      font-size: 48px;
     }
   }
 }
