@@ -13,10 +13,36 @@ export const ECHARTS_OPTIONS = {
         trigger: 'axis',
         axisPointer: {
             type: 'cross'
+        },
+        formatter: function (params: any) {
+            let result = params[0].axisValue + '<br/>';
+            params.forEach((param: any) => {
+                const value = param.value;
+                let formattedValue: string;
+
+                if (param.seriesName === 'Total Bytes') {
+                    // Bytes: eine Dezimalstelle
+                    formattedValue = value.toFixed(1) + ' GB';
+                } else {
+                    // Packets: ganzzahlig (gerundet)
+                    if (value >= 1e9) {
+                        formattedValue = (value / 1e9).toFixed(2) + ' GPkts';
+                    } else if (value >= 1e6) {
+                        formattedValue = (value / 1e6).toFixed(2) + ' MPkts';
+                    } else if (value >= 1e3) {
+                        formattedValue = (value / 1e3).toFixed(2) + ' kPkts';
+                    } else {
+                        formattedValue = Math.round(value) + ' Pkts';
+                    }
+                }
+
+                result += param.marker + ' ' + param.seriesName + ': ' + formattedValue + '<br/>';
+            });
+            return result;
         }
     },
     legend: {
-        data: ['Total Bytes', 'Packets Sent'],
+        data: ['Total Bytes', 'Packets Sent', 'Packets Received'],
         itemGap: 20
     },
     grid: {
@@ -60,7 +86,7 @@ export const ECHARTS_OPTIONS = {
         }
     },
     {
-        name: 'Packets Sent',
+        name: 'Packets',
         type: 'value',
         position: 'right',
         nameLocation: 'middle',
@@ -80,7 +106,12 @@ export const ECHARTS_OPTIONS = {
             show: true
         },
         axisLabel: {
-            formatter: '{value} MB',
+            formatter: function (value: any) {
+                if (value >= 1e9) return (value / 1e9).toFixed(1) + ' GPkts';
+                if (value >= 1e6) return (value / 1e6).toFixed(1) + ' MPkts';
+                if (value >= 1e3) return (value / 1e3).toFixed(1) + ' kPkts';
+                return value + ' Pkts';
+            },
             rotate: window.innerWidth <= 667 ? 330 : 0,
             show: true
         }
@@ -100,6 +131,16 @@ export const ECHARTS_OPTIONS = {
             yAxisIndex: 1,
             itemStyle: {
                 color: '#ee6666'
+            }
+        },
+        {
+            name: 'Packets Received',
+            type: 'line',
+            data: [],
+            smooth: true,
+            yAxisIndex: 1,
+            itemStyle: {
+                color: '#eecc66ff'
             }
         }
     ]

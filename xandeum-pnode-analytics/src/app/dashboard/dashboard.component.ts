@@ -461,16 +461,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   updateDateTime(): void {
     const now = new Date();
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
-    };
-    this.currentDateTime.set(now.toLocaleString('de-DE', options));
+    this.currentDateTime.set(now.toLocaleString('de-DE'));
   }
 }

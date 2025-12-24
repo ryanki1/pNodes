@@ -43,7 +43,7 @@ $dark-color: rgb(255, 255, 255, 0.85);
   h1 {
     font-size: 28px;
     font-weight: 600;
-    color: $light-color;
+    color: #8c8c8c;
     margin-bottom: 8px;
     display: flex;
     align-items: center;
@@ -67,7 +67,7 @@ $dark-color: rgb(255, 255, 255, 0.85);
 
     .toggle-label {
       font-size: 14px;
-      color: #595959;
+      color: #8c8c8c;
       font-weight: 500;
     }
   }
@@ -80,7 +80,7 @@ $dark-color: rgb(255, 255, 255, 0.85);
     align-items: center;
     gap: 8px;
     font-size: 14px;
-    color: #595959;
+    color: #8c8c8c;
     font-weight: 500;
 
     .anticon {
@@ -320,8 +320,36 @@ nz-tabs {
     padding: 12px;
   }
 
-  .page-header h1 {
-    font-size: 22px;
+  .page-header {
+    padding: 60px 20px 20px;
+
+    h1 {
+      font-size: 22px;
+    }
+
+    .background-toggle {
+      top: 10px;
+      left: 10px;
+      font-size: 12px;
+
+      .toggle-label {
+        font-size: 12px;
+      }
+    }
+
+    .datetime-display {
+      top: 10px;
+      right: 10px;
+      font-size: 11px;
+
+      .anticon {
+        font-size: 14px;
+      }
+
+      .datetime-text {
+        font-size: 11px;
+      }
+    }
   }
 
   .card-grid {

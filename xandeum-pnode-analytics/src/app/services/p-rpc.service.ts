@@ -132,11 +132,13 @@ export class PRpcService {
     const xAxisData: string[] = [];
     const yAxisTotalBytes: number[] = [];
     const yAxisPacketsSent: number[] = [];
+    const yAxisPacketsReceived: number[] = [];
 
     this.repo.stats.forEach((stat, index) => {
       xAxisData.push(get24Clock(this.repo.timenow! + index * POLL_INTERVAL));
       yAxisTotalBytes.push(stat.total_bytes / ONE_GB);
-      yAxisPacketsSent.push(stat.packets_sent / ONE_MB);
+      yAxisPacketsSent.push(stat.packets_sent);
+      yAxisPacketsReceived.push(stat.packets_received);
     });
 
     // Merge with base options and inject data
@@ -154,6 +156,10 @@ export class PRpcService {
         {
           ...ECHARTS_OPTIONS.series[1],
           data: yAxisPacketsSent
+        },
+         {
+          ...ECHARTS_OPTIONS.series[2],
+          data: yAxisPacketsReceived
         }
       ]
     };

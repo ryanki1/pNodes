@@ -101,8 +101,8 @@ export class MockDataService {
       ram_total: 8 * 1024 * 1024 * 1024, // 8GB
       uptime: Math.floor(86400 * (7 + Math.random() * 23)), // 7-30 days
       active_streams: Math.floor(10 + Math.random() * 50), // 10-60 streams
-      packets_sent: Math.floor(500000 + Math.random() * 1000000), // 500k-1.5M
-      packets_received: Math.floor(600000 + Math.random() * 1200000), // 600k-1.8M
+      packets_sent: Math.floor(500000 + Math.random() * 1000000), // 500kPkts-1.5MPkts
+      packets_received: Math.floor(600000 + Math.random() * 1200000), // 600kPkts-1.8MPkts
       total_bytes: Math.floor(800 * 1024 * 1024 * 1024 * (0.4 + Math.random() * 0.3)), // 40-70% of 800GB
     } as any;
 
@@ -137,10 +137,12 @@ export class MockDataService {
     const xAxisData: string[] = [];
     const yAxisTotalBytes: number[] = [];
     const yAxisPacketsSent: number[] = [];
+    const yAxisPacketsReceived: number[] = [];
     this.repo.stats.forEach((stat, index) => {
       xAxisData.push(get24Clock((this.repo.timenow || 0) + index * POLL_INTERVAL));
       yAxisTotalBytes.push(stat.total_bytes / ONE_GB); // Changed to MB instead of GB
-      yAxisPacketsSent.push(stat.packets_sent / ONE_MB)
+      yAxisPacketsSent.push(stat.packets_sent);
+      yAxisPacketsReceived.push(stat.packets_received);
     });
     if (this.repo.stats.length > MAX_BARS) {
       this.repo.stats = [...this.repo.stats.slice(-MAX_BARS-1, this.repo.stats.length)];
@@ -149,6 +151,7 @@ export class MockDataService {
       xAxisData.shift();
       yAxisTotalBytes.shift();
       yAxisPacketsSent.shift();
+      yAxisPacketsReceived.shift();
     }
     let options = {
       ...ECHARTS_OPTIONS,
@@ -164,6 +167,10 @@ export class MockDataService {
         {
           ...ECHARTS_OPTIONS.series[1],
           data: yAxisPacketsSent,
+        },
+        {
+          ...ECHARTS_OPTIONS.series[2],
+          data: yAxisPacketsReceived,
         }
       ]
     };
