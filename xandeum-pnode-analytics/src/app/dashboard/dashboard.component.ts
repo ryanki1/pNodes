@@ -1,6 +1,7 @@
 import { Component, computed, DestroyRef, inject, NgZone, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzStatisticModule } from 'ng-zorro-antd/statistic';
@@ -12,6 +13,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzProgressModule } from 'ng-zorro-antd/progress';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { LegendPosition, NgxChartsModule } from '@swimlane/ngx-charts';
 
 import { PRpcService, Pod, NodeStats } from '../services/p-rpc.service';
@@ -26,6 +28,7 @@ import { EChartsOption } from 'echarts/types/dist/shared';
   selector: 'app-dashboard',
   imports: [
     CommonModule,
+    FormsModule,
     NzCardModule,
     NzStatisticModule,
     NzGridModule,
@@ -36,6 +39,7 @@ import { EChartsOption } from 'echarts/types/dist/shared';
     NzProgressModule,
     NzSpinModule,
     NzTabsModule,
+    NzSwitchModule,
     NgxChartsModule,
   ],
   standalone: true,
@@ -48,6 +52,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   error = signal<string | null>(null);
   isMockMode = signal(false);
   barChartOptions = signal<EChartsOption>({} as EChartsOption);
+  backgroundEffectEnabled = signal(true);
+  currentDateTime = signal<string>('');
 
   private destroyRef = inject(DestroyRef);
   private barChart?: echarts.ECharts;
@@ -81,6 +87,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     // Check if we're in mock mode
     this.isMockMode.set(this.router.url === '/mock');
+
+    // Update date/time every second
+    this.updateDateTime();
+    timer(0, 1000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.updateDateTime());
 
     // Initial load
     await this.loadData();
@@ -445,5 +457,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   hasData(chartData: { name: string, value: number }[]): boolean {
     return chartData.some(item => item.value > 0);
+  }
+
+  updateDateTime(): void {
+    const now = new Date();
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    };
+    this.currentDateTime.set(now.toLocaleString('de-DE', options));
   }
 }

@@ -1,10 +1,39 @@
+$light-background: rgba(255, 255, 255, 0.95);
+$light-color: #262626;
+$dark-background: #1f1f1f;
+$dark-color: rgb(255, 255, 255, 0.85);
+
 .dashboard-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+
+  background-image: url('/assets/images/array.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  filter: sepia(0.2);
+  transition: background-image 0.3s ease, filter 0.3s ease;
+
+  .dashboard-card, nz-tabs {
+    opacity: 0.85;
+    transition: opacity 0.3s ease;
+  }
+
+  &.background-disabled {
+    background-image: none;
+    background-color: #f5f5f5;
+    filter: none;
+
+    .dashboard-card, nz-tabs {
+      opacity: 1;
+    }
+  }
 }
 
 .page-header {
+  position: relative;
   text-align: center;
   margin-bottom: 30px;
   padding: 20px;
@@ -14,7 +43,7 @@
   h1 {
     font-size: 28px;
     font-weight: 600;
-    color: #262626;
+    color: $light-color;
     margin-bottom: 8px;
     display: flex;
     align-items: center;
@@ -25,6 +54,42 @@
   p {
     font-size: 14px;
     color: #8c8c8c;
+    margin-bottom: 12px;
+  }
+
+  .background-toggle {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .toggle-label {
+      font-size: 14px;
+      color: #595959;
+      font-weight: 500;
+    }
+  }
+
+  .datetime-display {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #595959;
+    font-weight: 500;
+
+    .anticon {
+      font-size: 16px;
+    }
+
+    .datetime-text {
+      font-family: 'Monaco', 'Menlo', monospace;
+    }
   }
 
   &.mock-mode {
@@ -120,7 +185,7 @@
   .title {
     font-size: 16px;
     font-weight: 600;
-    color: #262626;
+    color: $light-color;
   }
 
   .subtitle {
@@ -167,7 +232,7 @@
   .stat-value {
     font-size: 14px;
     font-weight: 500;
-    color: #262626;
+    color: $light-color;
   }
 }
 
@@ -191,7 +256,7 @@
 .pubkey {
   font-family: 'Monaco', 'Menlo', monospace;
   font-size: 12px;
-  background: #f5f5f5;
+  background: $light-background;
   padding: 2px 6px;
   border-radius: 4px;
   color: #1890ff;
@@ -200,6 +265,53 @@
 .refresh {
   color: #e6f7ff;
   background-color: #096dd9;
+}
+
+/* Tabs Styling - Light Mode */
+nz-tabs {
+  border-radius: 12px;
+  background: $light-background;
+  ::ng-deep {
+    .ant-tabs-nav {
+      padding: 8px 16px 0;
+      border-radius: 12px 12px 0 0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .ant-tabs-tab {
+      padding: 12px 24px;
+      font-weight: 500;
+
+      button {
+        color: #595959;
+        font-size: 15px;
+        transition: all 0.3s ease;
+
+        .icon {
+          font-size: 18px;
+          margin-right: 8px;
+        }
+      }
+
+      &:hover button {
+        color: #1890ff;
+      }
+
+      &.ant-tabs-tab-active button {
+        color: #1890ff;
+        font-weight: 600;
+      }
+    }
+
+    .ant-tabs-ink-bar {
+      background: #1890ff;
+      height: 3px;
+    }
+
+    .ant-tabs-content-holder {
+      background: transparent;
+    }
+  }
 }
 
 /* Mobile Responsive - iPhone 8 (375px) */
@@ -234,11 +346,23 @@
 
 /* Dark Mode */
 @media (prefers-color-scheme: dark) {
+  .dashboard-container.background-disabled {
+    background-color: #141414;
+  }
+
   .page-header h1 {
     color: #e6e6e6;
   }
 
   .page-header p {
+    color: #a6a6a6;
+  }
+
+  .page-header .background-toggle .toggle-label {
+    color: #a6a6a6;
+  }
+
+  .page-header .datetime-display {
     color: #a6a6a6;
   }
 
@@ -252,24 +376,32 @@
     p {
       color: rgba(255, 255, 255, 0.9);
     }
+
+    .background-toggle .toggle-label {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .datetime-display {
+      color: rgba(255, 255, 255, 0.9);
+    }
   }
 
   .card-grid {
     ::ng-deep nz-statistic {
       .ant-statistic-title {
-        color: rgb(255, 255, 255, 0.85);
+        color: $dark-color;
       }
     }
   }
 
   .dashboard-card {
     ::ng-deep {
-      background: #1f1f1f;
+      background: $dark-background;
       border-color: #303030;
 
       .ant-card-head {
         border-bottom-color: #303030;
-        background: #1f1f1f;
+        background: $dark-background;
       }
 
       .ant-card-head-title {
@@ -299,33 +431,52 @@
   }
 
   nz-tabs {
-    &::ng-deep .ant-tabs-tab {
-      button {
-        color: rgb(255, 255, 255, 0.85);
+    background: $dark-background;
+    ::ng-deep {
+      .ant-tabs-nav {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .ant-tabs-tab {
+        button {
+          color: rgba(255, 255, 255, 0.65);
+        }
+
+        &:hover button {
+          color: #40a9ff;
+        }
+
+        &.ant-tabs-tab-active button {
+          color: #40a9ff;
+        }
+      }
+
+      .ant-tabs-ink-bar {
+        background: #40a9ff;
       }
     }
   }
 
   nz-table {
     .pubkey {
-      background: #262626;
-      color: #40a9ff;
+      background: $light-color;
+      color: cyan;
     }
     ::ng-deep nz-pagination {
       li:not(.ant-pagination-item-active) {
-        border-color: rgb(255, 255, 255, 0.85)!important;
+        border-color: $dark-color!important;
         a {
-          color: rgb(255, 255, 255, 0.85);
+          color: $dark-color;
           &:hover nz-icon {
             color: rgb(255, 255, 255, 1);
           }
           .ant-pagination-item-ellipsis {
-            color: rgb(255, 255, 255, 0.85);
+            color: $dark-color;
           }
         }
         button {
           nz-icon {
-            color: rgb(255, 255, 255, 0.85);
+            color: $dark-color;
             &:hover {
               color: rgb(255, 255, 255, 1);
             }
@@ -362,15 +513,30 @@
 
 /* Dark Mode for Charts */
 @media (prefers-color-scheme: dark) {
+  .dashboard-container {
+    background-image: url('/assets/images/nebula.jpg');
+  }
+  .dashboard-card {
+    ::ng-deep {
+      .ant-card-head {
+          border-radius: 12px 12px 0 0;
+        }
+    }
+
+  }
   .charts-grid {
     .chart-card {
+      background: transparent;
       ::ng-deep {
-        background: #1f1f1f;
-        border-color: #303030;
+        .ant-card {
+          border-color: #303030;
+          border-radius: 12px;
+          overflow: hidden;
+        }
 
         .ant-card-head {
           border-bottom-color: #303030;
-          background: #1f1f1f;
+          border-radius: 12px 12px 0 0;
         }
 
         .ant-card-head-title {
@@ -378,7 +544,7 @@
         }
 
         .ant-card-body {
-          background: #1f1f1f;
+          border-radius: 0 0 12px 12px;
         }
 
         // Chart text styling for dark mode
@@ -403,7 +569,7 @@
       svg {
         g {
           text {
-            fill: rgb(255, 255, 255, 0.85);
+            fill: $dark-color;
           }
         }
       }

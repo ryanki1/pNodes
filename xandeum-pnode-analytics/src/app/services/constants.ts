@@ -4,8 +4,7 @@ export const ONE_MB = 1024 * 1024;
 export const ONE_GB = 1024 * 1024 * 1024;
 export const ECHARTS_OPTIONS = {
     title: {
-      show: true,
-      text: 'Network Statistics'
+      show: true
     },
     textStyle: {
         fontSize: 16
