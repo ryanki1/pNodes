@@ -90,7 +90,7 @@ export const ECHARTS_OPTIONS = {
         type: 'value',
         position: 'right',
         nameLocation: 'middle',
-        nameGap: window.innerWidth <= 667 ? 50 : 100,
+        nameGap: window.innerWidth <= 667 ? 60 : 100,
         nameRotate: window.innerWidth <= 667 ? 90 : 0,
         nameTextStyle: {
             fontSize: 12,
@@ -128,6 +128,10 @@ export const ECHARTS_OPTIONS = {
             type: 'line',
             data: [],
             smooth: true,
+            stack: 'packet',
+            areaStyle: {
+                opacity: 0.3
+            },
             yAxisIndex: 1,
             itemStyle: {
                 color: '#ee6666'
@@ -138,6 +142,10 @@ export const ECHARTS_OPTIONS = {
             type: 'line',
             data: [],
             smooth: true,
+            stack: 'packet',
+            areaStyle: {
+                opacity: 0.3
+            },
             yAxisIndex: 1,
             itemStyle: {
                 color: '#eecc66ff'

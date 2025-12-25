@@ -8,7 +8,16 @@ import en from '@angular/common/locales/en';
 
 import { routes } from './app.routes';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
-import { BarChartOutline, PieChartOutline, ReloadOutline } from '@ant-design/icons-angular/icons'
+import {
+  BarChartOutline,
+  ClockCircleOutline,
+  ClusterOutline,
+  DatabaseOutline,
+  GlobalOutline,
+  LineChartOutline,
+  PieChartOutline,
+  ReloadOutline
+} from '@ant-design/icons-angular/icons'
 import { provideEchartsCore} from 'ngx-echarts';
 import * as echarts from 'echarts/core';
 import { BarChart, LineChart }  from 'echarts/charts';
@@ -34,7 +43,16 @@ echarts.use([
 
 registerLocaleData(en);
 
-const icons = [ BarChartOutline, PieChartOutline, ReloadOutline ];
+const icons = [
+  BarChartOutline,
+  ClockCircleOutline,
+  ClusterOutline,
+  DatabaseOutline,
+  GlobalOutline,
+  LineChartOutline,
+  PieChartOutline,
+  ReloadOutline
+];
 
 export const appConfig: ApplicationConfig = {
   providers: [

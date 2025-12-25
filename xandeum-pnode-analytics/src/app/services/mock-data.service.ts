@@ -140,7 +140,7 @@ export class MockDataService {
     const yAxisPacketsReceived: number[] = [];
     this.repo.stats.forEach((stat, index) => {
       xAxisData.push(get24Clock((this.repo.timenow || 0) + index * POLL_INTERVAL));
-      yAxisTotalBytes.push(stat.total_bytes / ONE_GB); // Changed to MB instead of GB
+      yAxisTotalBytes.push(stat.total_bytes / ONE_GB);
       yAxisPacketsSent.push(stat.packets_sent);
       yAxisPacketsReceived.push(stat.packets_received);
     });

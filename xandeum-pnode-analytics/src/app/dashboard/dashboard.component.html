@@ -9,7 +9,7 @@
         nzUnCheckedChildren="OFF">
       </nz-switch>
     </div>
-    <h1>🔷 Xandeum pNode Analytics @if (isMockMode()) {<span class="mock-badge">TEST MODE</span>}</h1>
+    <h1><img src="/assets/images/xandeum.png" alt="Xandeum Logo" class="logo"> Xandeum pNode Analytics @if (isMockMode()) {<span class="mock-badge">TEST MODE</span>}</h1>
     <p>Real-time monitoring of the Xandeum pNode network</p>
     <div class="datetime-display">
       <span nz-icon nzType="clock-circle" nzTheme="outline"></span>
@@ -41,7 +41,7 @@
       <nz-card [nzTitle]="networkTitle" [nzExtra]="networkExtra" class="dashboard-card">
         <ng-template #networkTitle>
           <div class="card-title">
-            <span class="icon">🌐</span>
+            <span nz-icon nzType="global" nzTheme="outline" class="icon"></span>
             <div>
               <div class="title">Network Overview</div>
               <div class="subtitle">Real-time statistics</div>
@@ -85,7 +85,7 @@
         <nz-card [nzTitle]="statsTitle" class="dashboard-card">
           <ng-template #statsTitle>
             <div class="card-title">
-              <span class="icon">📊</span>
+              <span nz-icon nzType="database" nzTheme="outline" class="icon"></span>
               <div>
                 <div class="title">Node Statistics</div>
                 <div class="subtitle">Connected Node: 173.212.220.65</div>
@@ -137,7 +137,7 @@
       <nz-tabs [nzAnimated]="false">
         <nz-tab [nzTitle]="tabCharts">
           <ng-template #tabCharts>
-            <span class="icon">📈</span>
+            <span nz-icon nzType="line-chart" nzTheme="outline" class="icon"></span>
             Charts
           </ng-template>
 
@@ -160,7 +160,7 @@
                       <ngx-charts-pie-chart
                         [results]="storageDistribution()"
                         [labels]="true"
-                        [doughnut]="true">
+                        [doughnut]="false">
                       </ngx-charts-pie-chart>
                     } @else {
                       <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #999;">
@@ -182,7 +182,7 @@
                       <ngx-charts-pie-chart
                         [results]="versionDistribution()"
                         [labels]="true"
-                        [doughnut]="false">
+                        [doughnut]="true">
                       </ngx-charts-pie-chart>
                     } @else {
                       <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #999;">
@@ -231,7 +231,7 @@
                       <ngx-charts-pie-chart
                         [results]="uptimeHealthDistribution()"
                         [labels]="true"
-                        [doughnut]="false">
+                        [doughnut]="true">
                       </ngx-charts-pie-chart>
                     } @else {
                       <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #999;">
@@ -251,13 +251,13 @@
         </nz-tab>
         <nz-tab [nzTitle]="tabPodList">
           <ng-template #tabPodList>
-            <span class="icon">📦</span>
+            <span nz-icon nzType="cluster" nzTheme="outline" class="icon"></span>
             Pods
           </ng-template>
           <nz-card [nzTitle]="podListTitle" [nzExtra]="podListExtra" class="dashboard-card pod-list-card">
             <ng-template #podListTitle>
               <div class="card-title">
-                <span class="icon">📦</span>
+                <span nz-icon nzType="database" nzTheme="outline" class="icon"></span>
                 <div>
                   <div class="title">Active Pods</div>
                   <div class="subtitle">{{ totalCount() }} pods in network</div>
