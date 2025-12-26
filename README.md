@@ -94,6 +94,7 @@ Test mode includes:
    - Total Bytes transferred (GB)
    - Packets Sent and Packets Received (with smart unit formatting: Pkt, kPkt, MPkt, GPkt)
    - Sliding time window showing last 10 data points
+   - Relative time labels on X-axis (now, -10s, -20s, -30s, etc.)
    - Custom tooltip with formatted values
 
 2. **Storage Distribution** - Pie chart displaying storage usage across pods
@@ -125,6 +126,7 @@ Test mode includes:
 - **Dark/Light Mode**: Automatic system preference detection with custom styling
 - **Mobile Responsive**: Optimized layouts for screens down to 375px (iPhone 8)
 - **Live DateTime Display**: Real-time clock in German locale
+- **Network Source Transparency**: Displays single node entry point (173.212.220.65) with option to add multiple peers
 
 ## Technology Stack
 
@@ -187,6 +189,7 @@ pNodes/
     │   │   └── services/
     │   │       ├── p-rpc.service.ts     # Real pNode API service
     │   │       ├── mock-data.service.ts # Mock data generator
+    │   │       ├── model.ts             # TypeScript type definitions
     │   │       ├── constants.ts         # ECharts config & constants
     │   │       └── utils.ts             # Utility functions
     │   └── assets/
