@@ -2,9 +2,10 @@ $light-background: rgba(255, 255, 255, 0.95);
 $light-color: #262626;
 $dark-background: #1f1f1f;
 $dark-color: rgb(255, 255, 255, 0.85);
-$header-color: #8c8c8c;
+$header-color: hsl(from #8c8c8c h s 30%);
 
 .dashboard-container {
+  position: relative;
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
@@ -34,10 +35,13 @@ $header-color: #8c8c8c;
 }
 
 .page-header {
-  position: relative;
+  &.mock-mode {
+    position: relative;
+    padding-top: 50px;
+  }
   text-align: center;
   margin-bottom: 30px;
-  padding: 20px;
+  padding: 30px 20px 20px;
   border-radius: 12px;
   transition: all 0.3s ease;
 
@@ -59,7 +63,7 @@ $header-color: #8c8c8c;
 
   p {
     font-size: 14px;
-    color: #8c8c8c;
+    color: $header-color;
     margin-bottom: 12px;
   }
 
@@ -86,7 +90,7 @@ $header-color: #8c8c8c;
     align-items: center;
     gap: 8px;
     font-size: 14px;
-    color: #8c8c8c;
+    color: $header-color;
     font-weight: 500;
 
     .anticon {
@@ -214,6 +218,30 @@ $header-color: #8c8c8c;
   }
 }
 
+.network-source-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0 0;
+  margin-top: 12px;
+  border-top: 1px solid #f0f0f0;
+  flex-wrap: wrap;
+
+  nz-tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    padding: 4px 12px;
+  }
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
 .stat-col {
   padding-bottom: 12px;
   border-bottom: 1px solid #f5f5f5;
@@ -331,7 +359,11 @@ nz-tabs {
   }
 
   .page-header {
-    padding: 60px 20px 20px;
+    padding: 30px 20px 20px;
+    &.mock-mode {
+      position: relative;
+      padding-top: 40px;
+    }
 
     h1 {
       font-size: 22px;
@@ -470,6 +502,10 @@ nz-tabs {
     .stat-value {
       color: #e6e6e6;
     }
+  }
+
+  .network-source-info {
+    border-top-color: #303030;
   }
 
   nz-tabs {

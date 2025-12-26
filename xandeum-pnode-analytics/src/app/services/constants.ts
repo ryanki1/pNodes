@@ -22,17 +22,25 @@ export const ECHARTS_OPTIONS = {
 
                 if (param.seriesName === 'Total Bytes') {
                     // Bytes: eine Dezimalstelle
-                    formattedValue = value.toFixed(1) + ' GB';
+                    if (value >= 1e9) {
+                        formattedValue = (value / 1e9).toFixed(2) + ' GB';
+                    } else if (value >= 1e6) {
+                        formattedValue = (value / 1e6).toFixed(2) + ' MB';
+                    } else if (value >= 1e3) {
+                        formattedValue = (value / 1e3).toFixed(2) + ' kB';
+                    } else {
+                        formattedValue = Math.round(value) + ' Bytes';
+                    }
                 } else {
                     // Packets: ganzzahlig (gerundet)
                     if (value >= 1e9) {
-                        formattedValue = (value / 1e9).toFixed(2) + ' GPkts';
+                        formattedValue = (value / 1e9).toFixed(2) + ' GPkt';
                     } else if (value >= 1e6) {
-                        formattedValue = (value / 1e6).toFixed(2) + ' MPkts';
+                        formattedValue = (value / 1e6).toFixed(2) + ' MPkt';
                     } else if (value >= 1e3) {
-                        formattedValue = (value / 1e3).toFixed(2) + ' kPkts';
+                        formattedValue = (value / 1e3).toFixed(2) + ' kPkt';
                     } else {
-                        formattedValue = Math.round(value) + ' Pkts';
+                        formattedValue = Math.round(value) + ' Pkt';
                     }
                 }
 
@@ -81,7 +89,20 @@ export const ECHARTS_OPTIONS = {
             show: true
         },
         axisLabel: {
-            formatter: '{value} GB',
+             formatter: function (value: number) {
+                let formattedValue: string;
+                // Bytes: eine Dezimalstelle
+                if (value >= 1e9) {
+                    formattedValue = (value / 1e9) + ' GB';
+                } else if (value >= 1e6) {
+                    formattedValue = (value / 1e6) + ' MB';
+                } else if (value >= 1e3) {
+                    formattedValue = (value / 1e3) + ' kB';
+                } else {
+                    formattedValue = Math.round(value) + ' Bytes';
+                }
+                return formattedValue;
+            },
             rotate: window.innerWidth <= 667 ? 30 : 0,
         }
     },
@@ -107,10 +128,10 @@ export const ECHARTS_OPTIONS = {
         },
         axisLabel: {
             formatter: function (value: any) {
-                if (value >= 1e9) return (value / 1e9).toFixed(1) + ' GPkts';
-                if (value >= 1e6) return (value / 1e6).toFixed(1) + ' MPkts';
-                if (value >= 1e3) return (value / 1e3).toFixed(1) + ' kPkts';
-                return value + ' Pkts';
+                if (value >= 1e9) return (value / 1e9).toFixed(1) + ' GPkt';
+                if (value >= 1e6) return (value / 1e6).toFixed(1) + ' MPkt';
+                if (value >= 1e3) return (value / 1e3).toFixed(1) + ' kPkt';
+                return value + ' Pkt';
             },
             rotate: window.innerWidth <= 667 ? 330 : 0,
             show: true

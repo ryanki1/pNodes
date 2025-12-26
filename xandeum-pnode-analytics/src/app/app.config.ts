@@ -10,12 +10,14 @@ import { routes } from './app.routes';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
 import {
   BarChartOutline,
+  BorderlessTableOutline,
   ClockCircleOutline,
   ClusterOutline,
   DatabaseOutline,
   GlobalOutline,
   LineChartOutline,
   PieChartOutline,
+  PlusOutline,
   ReloadOutline
 } from '@ant-design/icons-angular/icons'
 import { provideEchartsCore} from 'ngx-echarts';
@@ -45,12 +47,14 @@ registerLocaleData(en);
 
 const icons = [
   BarChartOutline,
+  BorderlessTableOutline,
   ClockCircleOutline,
   ClusterOutline,
   DatabaseOutline,
   GlobalOutline,
   LineChartOutline,
   PieChartOutline,
+  PlusOutline,
   ReloadOutline
 ];
 

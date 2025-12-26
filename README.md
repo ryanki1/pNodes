@@ -92,7 +92,7 @@ Test mode includes:
 ### Interactive Data Visualizations
 1. **Network Activity Over Time** - ECharts bar and stacked area chart showing:
    - Total Bytes transferred (GB)
-   - Packets Sent and Packets Received (with smart unit formatting: Pkts, kPkts, MPkts, GPkts)
+   - Packets Sent and Packets Received (with smart unit formatting: Pkt, kPkt, MPkt, GPkt)
    - Sliding time window showing last 10 data points
    - Custom tooltip with formatted values
 

@@ -1,4 +1,13 @@
-import { Component, computed, DestroyRef, inject, NgZone, OnDestroy, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  NgZone,
+  OnDestroy,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -14,15 +23,17 @@ import { NzProgressModule } from 'ng-zorro-antd/progress';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { LegendPosition, NgxChartsModule } from '@swimlane/ngx-charts';
 
-import { PRpcService, Pod, NodeStats } from '../services/p-rpc.service';
+import { PRpcService } from '../services/p-rpc.service';
 import { MockDataService } from '../services/mock-data.service';
 import * as echarts from 'echarts/core';
 import { timer } from 'rxjs';
 import { POLL_INTERVAL } from '../services/constants';
 import { formatBytes, formatUptime } from '../services/utils';
 import { EChartsOption } from 'echarts/types/dist/shared';
+import { NodeStats, Pod } from '../services/model';
 
 @Component({
   selector: 'app-dashboard',
@@ -40,6 +51,7 @@ import { EChartsOption } from 'echarts/types/dist/shared';
     NzSpinModule,
     NzTabsModule,
     NzSwitchModule,
+    NzTooltipModule,
     NgxChartsModule,
   ],
   standalone: true,
@@ -100,9 +112,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.tableData.set([...this.pods()]);
 
     timer(0, POLL_INTERVAL)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef)
-      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         // Skip if already loading to prevent overlapping requests
         if (this.isLoadingData) {
@@ -132,8 +142,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
               // Get chart options IN Angular zone (uses computed signals)
               const newOptions = this.isMockMode()
-                ? this.mockDataService.getBarChart()
-                : this.prpcService.getBarChart();
+                ? this.mockDataService.getComboChart()
+                : this.prpcService.getComboChart();
 
               // Update signal
               this.barChartOptions.set(newOptions as any);
@@ -143,7 +153,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 this.ngZone.runOutsideAngular(() => {
                   this.barChart!.setOption(newOptions, {
                     notMerge: false,
-                    lazyUpdate: true
+                    lazyUpdate: true,
                   });
                 });
               }
@@ -156,7 +166,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             });
         }, 0);
       });
-    }
+  }
 
   ngOnDestroy() {
     this.ro.disconnect();
@@ -208,7 +218,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.tableData.set([...this.pods()]);
   }
 
-
   // Helper methods
   formatBytes(bytes: number): string {
     return formatBytes(bytes);
@@ -223,7 +232,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   getTotalStorage(): number {
-    return this.pods().reduce((sum, pod) => sum + (pod.storage_used || 0), 0);
+    const podsStorage = this.pods().reduce((sum, pod) => sum + (pod.storage_used ?? 0), 0);
+    return podsStorage > 0 ? podsStorage : this.nodeStats()?.total_bytes ?? 0;
   }
 
   getOnlineCount(): number {
@@ -244,7 +254,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   sortByPubkey = (a: Pod, b: Pod) => (a.pubkey || '').localeCompare(b.pubkey || '');
   sortByAddress = (a: Pod, b: Pod) => (a.address || '').localeCompare(b.address || '');
   sortByStorage = (a: Pod, b: Pod) => (a.storage_used || 0) - (b.storage_used || 0);
-  sortByStoragePercent = (a: Pod, b: Pod) => (a.storage_usage_percent || 0) - (b.storage_usage_percent || 0);
+  sortByStoragePercent = (a: Pod, b: Pod) =>
+    (a.storage_usage_percent || 0) - (b.storage_usage_percent || 0);
   sortByUptime = (a: Pod, b: Pod) => (a.uptime || 0) - (b.uptime || 0);
   sortByVersion = (a: Pod, b: Pod) => (a.version || '').localeCompare(b.version || '');
 
@@ -256,14 +267,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
     { text: '> 5 GB', value: '>5gb' },
     { text: '> 1 GB', value: '>1gb' },
     { text: '< 1 GB', value: '<1gb' },
-    { text: 'No Storage', value: 'none' }
+    { text: 'No Storage', value: 'none' },
   ];
 
   storagePercentFilters = [
     { text: '> 80%', value: '>0.8' },
     { text: '> 50%', value: '>0.5' },
     { text: '< 25%', value: '<0.25' },
-    { text: '0%', value: '0' }
+    { text: '0%', value: '0' },
   ];
 
   uptimeFilters = [
@@ -271,7 +282,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     { text: '> 1 day', value: '>1d' },
     { text: '> 1 hour', value: '>1h' },
     { text: '< 1 hour', value: '<1h' },
-    { text: 'No Uptime', value: 'none' }
+    { text: 'No Uptime', value: 'none' },
   ];
 
   // ========================================
@@ -283,11 +294,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const oneGB = 1024 * 1024 * 1024;
 
     switch (value) {
-      case '>5gb': return storage > 5 * oneGB;
-      case '>1gb': return storage > oneGB;
-      case '<1gb': return storage < oneGB && storage > 0;
-      case 'none': return storage === 0;
-      default: return true;
+      case '>5gb':
+        return storage > 5 * oneGB;
+      case '>1gb':
+        return storage > oneGB;
+      case '<1gb':
+        return storage < oneGB && storage > 0;
+      case 'none':
+        return storage === 0;
+      default:
+        return true;
     }
   };
 
@@ -295,11 +311,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const percent = item.storage_usage_percent || 0;
 
     switch (value) {
-      case '>0.8': return percent > 0.8;
-      case '>0.5': return percent > 0.5;
-      case '<0.25': return percent < 0.25 && percent > 0;
-      case '0': return percent === 0;
-      default: return true;
+      case '>0.8':
+        return percent > 0.8;
+      case '>0.5':
+        return percent > 0.5;
+      case '<0.25':
+        return percent < 0.25 && percent > 0;
+      case '0':
+        return percent === 0;
+      default:
+        return true;
     }
   };
 
@@ -307,12 +328,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const uptime = item.uptime || 0;
 
     switch (value) {
-      case '>7d': return uptime > 7 * 24 * 3600;
-      case '>1d': return uptime > 24 * 3600;
-      case '>1h': return uptime > 3600 && uptime <= 24 * 3600;
-      case '<1h': return uptime < 3600 && uptime > 0;
-      case 'none': return uptime === 0;
-      default: return true;
+      case '>7d':
+        return uptime > 7 * 24 * 3600;
+      case '>1d':
+        return uptime > 24 * 3600;
+      case '>1h':
+        return uptime > 3600 && uptime <= 24 * 3600;
+      case '<1h':
+        return uptime < 3600 && uptime > 0;
+      case 'none':
+        return uptime === 0;
+      default:
+        return true;
     }
   };
 
@@ -336,7 +363,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const others = sorted.slice(5);
 
     const chartData = top5.map((pod) => ({
-      name: this.shortenPubkey(pod.pubkey || 'Unknown'),
+      name: `${this.shortenPubkey(pod.pubkey || 'Unknown')} ${this.formatBytes(
+        pod.storage_used ?? 0
+      )}`,
       value: pod.storage_used || 0,
     }));
 
@@ -344,9 +373,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (others.length > 0) {
       const othersTotal = others.reduce((sum, pod) => sum + (pod.storage_used || 0), 0);
       chartData.push({
-        name: 'Others',
+        name: `Others ${this.formatBytes(othersTotal ?? 0)}`,
         value: othersTotal,
       });
+    }
+
+    if (!chartData.some((item) => item.value > 0)) {
+      return [
+        {
+          name: `Network ${this.formatBytes(this.nodeStats()?.total_bytes ?? 0)}`,
+          value: this.nodeStats()?.total_bytes ?? 0,
+        },
+      ];
     }
 
     return chartData;
@@ -449,14 +487,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
     });
 
-    return Object.entries(ranges).map(([name, value]) => ({
+    const distribution = Object.entries(ranges).map(([name, value]) => ({
       name,
       value,
     }));
+
+    if (
+      Object.values(distribution).find((e) => e.name === 'No Uptime')?.value === this.pods().length
+    ) {
+      return [{ name: `Network ${formatUptime(this.nodeStats()!.uptime)}`, value: 1 }];
+    }
+
+    return distribution;
   }
 
-  hasData(chartData: { name: string, value: number }[]): boolean {
-    return chartData.some(item => item.value > 0);
+  hasData(chartData: { name: string; value: number }[]): boolean {
+    return chartData.some((item) => item.value > 0);
   }
 
   updateDateTime(): void {

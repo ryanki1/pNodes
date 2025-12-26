@@ -1,3 +1,6 @@
+import { NodeStats, Pod } from "./model";
+import { ECHARTS_OPTIONS, MAX_BARS, POLL_INTERVAL } from "./constants";
+
 /**
  * Return string of format HH:MM e.g. 12:32
  */
@@ -45,3 +48,56 @@ export function formatUptime(seconds: number): string {
 export function formatTimestamp(timestamp: number): string {
     return new Date(timestamp * 1000).toLocaleString();
 }
+
+export function getComboChart(repo: { pods: Pod[]; stats: NodeStats[] }) {
+    // Trim to MAX_BARS if needed (sliding window)
+    if (repo.stats.length > MAX_BARS) {
+      repo.stats = repo.stats.slice(-MAX_BARS);
+    }
+
+    // Prepare chart data
+    const xAxisData: string[] = [];
+    const yAxisTotalBytes: number[] = [];
+    const yAxisPacketsSent: number[] = [];
+    const yAxisPacketsReceived: number[] = [];
+
+    const totalBars = repo.stats.length;
+
+    repo.stats.forEach((stat, index) => {
+      // Calculate relative time labels: rightmost is "now", others are negative offsets
+      const isLast = index === totalBars - 1;
+      if (isLast) {
+        xAxisData.push('now');
+      } else {
+        const secondsAgo = (totalBars - 1 - index) * (POLL_INTERVAL / 1000);
+        xAxisData.push(`-${secondsAgo}s`);
+      }
+
+      yAxisTotalBytes.push(stat.total_bytes);
+      yAxisPacketsSent.push(stat.packets_sent);
+      yAxisPacketsReceived.push(stat.packets_received);
+    });
+
+    // Merge with base options and inject data
+    return {
+      ...ECHARTS_OPTIONS,
+      xAxis: {
+        ...ECHARTS_OPTIONS.xAxis,
+        data: xAxisData,
+      },
+      series: [
+        {
+          ...ECHARTS_OPTIONS.series[0],
+          data: yAxisTotalBytes,
+        },
+        {
+          ...ECHARTS_OPTIONS.series[1],
+          data: yAxisPacketsSent,
+        },
+        {
+          ...ECHARTS_OPTIONS.series[2],
+          data: yAxisPacketsReceived,
+        },
+      ],
+    };
+  }

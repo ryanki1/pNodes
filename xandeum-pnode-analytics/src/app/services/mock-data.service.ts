@@ -1,13 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Pod, NodeStats } from './p-rpc.service';
-import { get24Clock } from './utils';
-import { ECHARTS_OPTIONS, MAX_BARS, ONE_GB, ONE_MB, POLL_INTERVAL } from './constants';
+import { getComboChart } from './utils';
+import { NodeStats, Pod } from './model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class MockDataService {
-  private repo: { timenow?: number; pods: Pod[]; stats: NodeStats[] } = {
+  private repo: { pods: Pod[]; stats: NodeStats[] } = {
     pods: [],
     stats: [],
   };
@@ -85,8 +84,7 @@ export class MockDataService {
       });
     }
 
-    const timenow = this.repo.timenow ? this.repo.timenow : Date.now();
-    this.repo = { ...this.repo, timenow, pods };
+    this.repo = { ...this.repo, pods };
 
     return pods;
   }
@@ -133,47 +131,7 @@ export class MockDataService {
     return `${octet()}.${octet()}.${octet()}.${octet()}`;
   }
 
-  getBarChart() {
-    const xAxisData: string[] = [];
-    const yAxisTotalBytes: number[] = [];
-    const yAxisPacketsSent: number[] = [];
-    const yAxisPacketsReceived: number[] = [];
-    this.repo.stats.forEach((stat, index) => {
-      xAxisData.push(get24Clock((this.repo.timenow || 0) + index * POLL_INTERVAL));
-      yAxisTotalBytes.push(stat.total_bytes / ONE_GB);
-      yAxisPacketsSent.push(stat.packets_sent);
-      yAxisPacketsReceived.push(stat.packets_received);
-    });
-    if (this.repo.stats.length > MAX_BARS) {
-      this.repo.stats = [...this.repo.stats.slice(-MAX_BARS-1, this.repo.stats.length)];
-      this.repo.stats.shift();
-      this.repo.timenow = this.repo.timenow! +  POLL_INTERVAL;
-      xAxisData.shift();
-      yAxisTotalBytes.shift();
-      yAxisPacketsSent.shift();
-      yAxisPacketsReceived.shift();
-    }
-    let options = {
-      ...ECHARTS_OPTIONS,
-      xAxis: {
-        ...ECHARTS_OPTIONS.xAxis,
-        data: xAxisData
-      },
-      series: [
-        {
-          ...ECHARTS_OPTIONS.series[0],
-          data: yAxisTotalBytes,
-        },
-        {
-          ...ECHARTS_OPTIONS.series[1],
-          data: yAxisPacketsSent,
-        },
-        {
-          ...ECHARTS_OPTIONS.series[2],
-          data: yAxisPacketsReceived,
-        }
-      ]
-    };
-    return options;
+  getComboChart() {
+    return getComboChart(this.repo);
   }
 }

@@ -78,6 +78,26 @@
             </nz-statistic>
           </div>
         </div>
+
+        <div class="network-source-info">
+          <nz-tag [nzColor]="'blue'">
+            <span nz-icon nzType="borderless-table" nzTheme="outline"></span>
+            Source: Single Node Entry Point
+          </nz-tag>
+          <nz-tag [nzColor]="'blue'">
+            (173.212.220.65)
+          </nz-tag>
+          <button
+            nz-button
+            nzType="dashed"
+            nzSize="small"
+            [disabled]="true"
+            nz-tooltip
+            nzTooltipTitle="Feature coming soon - Add multiple pNode peers for comprehensive network view">
+            <span nz-icon nzType="plus" nzTheme="outline"></span>
+            Add More Peers for Network View
+          </button>
+        </div>
       </nz-card>
 
       <!-- Card 2: Node Statistics -->
